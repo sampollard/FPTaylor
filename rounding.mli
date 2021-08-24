@@ -12,7 +12,12 @@
 
 type value_type
 
-type rnd_type = Rnd_ne | Rnd_up | Rnd_down | Rnd_0
+(* The first five are rounding modes specified by the IEEE 754
+ * standard. The last represents rounding to nearest, ties to even,
+ * but flushes subnormal numbers to zero. This is used, for example,
+ * by specifying "-ftz=true" in CUDA, for 32-bit floats (not 64 bit).
+ * In this case, epsilon = delta *)
+type rnd_type = Rnd_ne | Rnd_up | Rnd_down | Rnd_0 | Rnd_ne_ftz
 
 type rnd_info = {
   (* Approximation of the maximum value *)

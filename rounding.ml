@@ -15,7 +15,12 @@ type value_type = {
   bits : int;
 }
 
-type rnd_type = Rnd_ne | Rnd_up | Rnd_down | Rnd_0
+(* The first five are rounding modes specified by the IEEE 754
+ * standard. The last represents rounding to nearest, ties to even,
+ * but flushes subnormal numbers to zero. This is used, for example,
+ * by specifying "-ftz=true" in CUDA, for 32-bit floats (not 64 bit).
+ * In this case, epsilon = delta *)
+type rnd_type = Rnd_ne | Rnd_up | Rnd_down | Rnd_0 | Rnd_ne_ftz
 
 type rnd_info = {
   (* Approximation of the maximum value *)
@@ -25,7 +30,7 @@ type rnd_info = {
   coefficient : float;
   fp_type : value_type;
   rnd_type : rnd_type;
-  special_flag : bool;
+  special_flag : bool; (* Used when the result of an operation has delta = 0 *)
 }
 
 let mk_value_type bits = { bits = bits }
@@ -34,11 +39,11 @@ let real_type = mk_value_type max_int
 
 let string_to_value_type str =
   match str with
-  | "float16" -> mk_value_type 16
-  | "float32" -> mk_value_type 32
-  | "float64" -> mk_value_type 64
-  | "float128" -> mk_value_type 128
-  | "real" -> real_type
+  | "float16"     -> mk_value_type 16
+  | "float32"     -> mk_value_type 32
+  | "float64"     -> mk_value_type 64
+  | "float128"    -> mk_value_type 128
+  | "real"        -> real_type
   | _ -> failwith ("Unknown type: " ^ str)
 
 let value_type_to_string ty =
@@ -83,12 +88,18 @@ let max_value_from_bits bits =
       | _ -> failwith ("max_value_from_bits: Unsupported fp size: " ^ string_of_int bits) in
   (2.0 -. ldexp 1.0 (-p)) *. ldexp 1.0 emax
 
+(* Returns a pair of (dir, rnd_type) where
+   dir = true means the value is _not_ rounded to nearest; that is,
+      the error is bounded by 2*eps for normal numbers, and
+   dir = false means the error is rounded to nearest (eps)
+*)
 let string_to_rnd_type str =
   match str with
     | "ne" | "nearest" -> false, Rnd_ne
     | "down" | "negative_infinity" -> true, Rnd_down
     | "up" | "positive_infinity" -> true, Rnd_up
     | "zero" | "toward_zero" -> true, Rnd_0
+    | "ne_ftz" | "nearest_flush_to_zero" -> false, Rnd_ne_ftz
     | _ -> failwith ("Unknown rounding type: " ^ str)
 
 let create_rounding bits rnd c =
@@ -97,7 +108,7 @@ let create_rounding bits rnd c =
   let eps, delta = eps_delta_from_bits bits in {
     max_val = max_value_from_bits bits;
     eps_exp = eps;
-    delta_exp = delta;
+    delta_exp = if rnd_type = Rnd_ne_ftz then eps else delta;
     coefficient = if dir_flag then 2.0 *. c else c;
     fp_type = fp_type;
     rnd_type = rnd_type;
@@ -148,6 +159,7 @@ let rounding_type_to_string rnd_type =
     | Rnd_up -> "up"
     | Rnd_down -> "down"
     | Rnd_0 -> "zero"
+    | Rnd_ne_ftz -> "ne_ftz"
 
 let rounding_to_string rnd =
   try Lib.rev_assoc rnd rounding_table 
