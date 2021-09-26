@@ -295,7 +295,7 @@ let var_rnd_form cs rnd e =
 
 (* rounding *)
 let rounded_form cs original_expr rnd f =
-  Log.report `Debug "rounded_form";
+  Log.report `Debug "rounded_form, eps = 2^%d, delta = 2^%d" rnd.eps_exp rnd.delta_exp; 
   if rnd.eps_exp = 0 then {
     v0 = f.v0;
     v1 = f.v1 @ [mk_float_const rnd.coefficient, mk_err_var (-1) rnd.delta_exp]

@@ -12,7 +12,7 @@
 
 type value_type
 
-type rnd_type = Rnd_ne | Rnd_up | Rnd_down | Rnd_0 | Rnd_ne_ftz
+type rnd_type = Rnd_ne | Rnd_up | Rnd_down | Rnd_0
 
 type rnd_info = {
   (* Approximation of the maximum value *)
