@@ -85,8 +85,20 @@ let bin_float_of_num p rnd r =
 		    low, k 
 		  else
 		    next low k
+	    end
+	  | Rnd_ne_ftz ->
+	    let d = y -/ low in
+	    begin
+	      match (compare_num d half) with
+		| -1 -> low, k
+		| 1 -> next low k
+		| _ ->
+		  if is_even_num low then
+		    low, k
+		  else
+		    next low k
 	    end in
-    mk_pos_bin_float (big_int_of_num m) e 
+    mk_pos_bin_float (big_int_of_num m) e
   in
   match sign_num r with
     | 0 -> bf0

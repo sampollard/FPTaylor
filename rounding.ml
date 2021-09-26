@@ -15,7 +15,7 @@ type value_type = {
   bits : int;
 }
 
-type rnd_type = Rnd_ne | Rnd_up | Rnd_down | Rnd_0
+type rnd_type = Rnd_ne | Rnd_up | Rnd_down | Rnd_0 | Rnd_ne_ftz
 
 type rnd_info = {
   (* Approximation of the maximum value *)
@@ -89,6 +89,7 @@ let string_to_rnd_type str =
     | "down" | "negative_infinity" -> true, Rnd_down
     | "up" | "positive_infinity" -> true, Rnd_up
     | "zero" | "toward_zero" -> true, Rnd_0
+    | "ftz" | "nearest_flush_to_zero" -> false, Rnd_ne_ftz
     | _ -> failwith ("Unknown rounding type: " ^ str)
 
 let create_rounding bits rnd c =
@@ -122,6 +123,7 @@ let rounding_table = [
   "rnd16_0", create_rounding 16 "zero" 1.0;
   (* 32 bit rounding *)
   "rnd32", create_rounding 32 "ne" 1.0;
+  "rnd32_ftz", create_explicit_rounding 32 "ftz" 1.0 (-24) (-24);
   "rnd32_up", create_rounding 32 "up" 1.0;
   "rnd32_down", create_rounding 32 "down" 1.0;
   "rnd32_0", create_rounding 32 "zero" 1.0;
@@ -148,6 +150,7 @@ let rounding_type_to_string rnd_type =
     | Rnd_up -> "up"
     | Rnd_down -> "down"
     | Rnd_0 -> "zero"
+    | Rnd_ne_ftz -> "ne_ftz"
 
 let rounding_to_string rnd =
   try Lib.rev_assoc rnd rounding_table 
