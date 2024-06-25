@@ -1,5 +1,5 @@
-ML = ocamlc
-OPT_ML = ocamlopt
+ML = ocamlfind ocamlc -package num,unix
+OPT_ML = ocamlfind ocamlopt -package num,unix
 JSML = js_of_ocaml --opt 3
 INTERVAL_DIR = INTERVAL
 SIMPLE_INTERVAL_DIR = simple_interval

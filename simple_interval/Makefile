@@ -1,5 +1,5 @@
-ML = ocamlc
-OPT_ML = ocamlopt
+ML = ocamlfind ocamlc -package num,unix
+OPT_ML = ocamlfind ocamlopt -package num,unix
 
 SRC=	interval2.mli \
 	interval2.ml \
